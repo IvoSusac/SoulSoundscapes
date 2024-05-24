@@ -3,9 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SoulSoundscapes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #camera {
+            margin: 20px;
+        }
+        #emotion {
+            font-size: 24px;
+            margin: 10px;
+        }
+        #playlist {
+            width: 80%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .song {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .song:last-child {
+            border-bottom: none;
+        }
+    </style>
 </head>
 <body>
-    test 1
+    <h1>Emotion-Based Music Recommender</h1>
+    <div id="camera">
+        <img id="video" width="640" height="480" src="{{ url_for('video_feed') }}" />
+    </div>
+    <div id="emotion">Detected Emotion: <span id="emotion-label">None</span></div>
+    <div id="playlist">
+        <h2>Recommended Songs</h2>
+        <div id="songs">
+            <!-- Songs will be appended here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to simulate fetching songs based on emotion
+        function getSongsForEmotion(emotion) {
+            const playlists = {
+                happy: ['Happy Song 1', 'Happy Song 2', 'Happy Song 3'],
+                sad: ['Sad Song 1', 'Sad Song 2', 'Sad Song 3'],
+                neutral: ['Neutral Song 1', 'Neutral Song 2', 'Neutral Song 3'],
+                // Add more emotions and corresponding songs as needed
+            };
+            return playlists[emotion] || [];
+        }
+
+        function updateEmotion(emotion) {
+            document.getElementById('emotion-label').innerText = emotion;
+            const songsDiv = document.getElementById('songs');
+            songsDiv.innerHTML = ''; // clearamo pjesme
+
+            const songs = getSongsForEmotion(emotion);
+            songs.forEach(song => {
+                const songDiv = document.createElement('div');
+                songDiv.className = 'song';
+                songDiv.innerText = song;
+                songsDiv.appendChild(songDiv);
+            });
+        }
+
+        // fetch emotion i update
+        function fetchEmotion() {
+            fetch('/emotion')
+                .then(response => response.json())
+                .then(data => {
+                    updateEmotion(data.emotion);
+                })
+                .catch(error => console.error('Error fetching emotion:', error));
+        }
+
+        // update na emocijama svake 2 sekunde
+        setInterval(fetchEmotion, 2000);
+    </script>
 </body>
 </html>
