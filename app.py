@@ -1,6 +1,11 @@
-from flask import Flask, render_template, jsonify, Response
+from flask import Flask, redirect, url_for, session, request, render_template, Response, jsonify
+from flask_session import Session
+import time
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 import cv2
 from deepface import DeepFace
+import os
 
 app = Flask(__name__)
 
@@ -40,9 +45,56 @@ def generate_frames():
     cap.release()
     cv2.destroyAllWindows()
 
+app = Flask(__name__)
+app.secret_key = 'YOUR_SECRET_KEY'
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+REDIRECT_URI = 'http://localhost:5000/callback'
+
+sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, 
+                        client_secret=CLIENT_SECRET, 
+                        redirect_uri=REDIRECT_URI, 
+                        scope="user-library-read user-top-read")
+
 @app.route('/')
+def login():
+    return render_template('login.html')
+
+@app.route('/authorize')
+def authorize():
+    auth_url = sp_oauth.get_authorize_url()
+    return redirect(auth_url)
+
+@app.route('/callback')
+def callback():
+    session.clear()
+    code = request.args.get('code')
+    token_info = sp_oauth.get_access_token(code)
+    session['token_info'] = token_info
+    return redirect(url_for('index'))
+
+def get_token():
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return redirect(url_for('login'))
+    now = int(time.time())
+    is_token_expired = token_info['expires_at'] - now < 60
+    if is_token_expired:
+        token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+    return token_info
+
+@app.route('/index')
 def index():
+    token_info = get_token()
+    if not token_info:
+        return redirect(url_for('login'))
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    # Now you can use the Spotify API to get user information or recommendations
     return render_template('index.html')
+
 
 @app.route('/video_feed')
 def video_feed():
