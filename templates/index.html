@@ -39,6 +39,21 @@
         .song:last-child {
             border-bottom: none;
         }
+        .artist {
+            font-weight: bold;
+        }
+        .title {
+            margin-left: 10px;
+        }
+        .spotify-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #1db954;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -55,42 +70,57 @@
     </div>
 
     <script>
-        // Function to simulate fetching songs based on emotion
-        function getSongsForEmotion(emotion) {
-            const playlists = {
-                happy: ['Happy Song 1', 'Happy Song 2', 'Happy Song 3'],
-                sad: ['Sad Song 1', 'Sad Song 2', 'Sad Song 3'],
-                neutral: ['Neutral Song 1', 'Neutral Song 2', 'Neutral Song 3'],
-                // Add more emotions and corresponding songs as needed
-            };
-            return playlists[emotion] || [];
-        }
+        const validEmotions = ['happy', 'sad', 'angry', 'neutral'];
 
         function updateEmotion(emotion) {
             document.getElementById('emotion-label').innerText = emotion;
-            const songsDiv = document.getElementById('songs');
-            songsDiv.innerHTML = ''; // clearamo pjesme
+            fetch(`/songs/${emotion}`)
+                .then(response => response.json())
+                .then(songs => {
+                    const songsDiv = document.getElementById('songs');
+                    songsDiv.innerHTML = ''; 
 
-            const songs = getSongsForEmotion(emotion);
-            songs.forEach(song => {
-                const songDiv = document.createElement('div');
-                songDiv.className = 'song';
-                songDiv.innerText = song;
-                songsDiv.appendChild(songDiv);
-            });
+                    songs.forEach(song => {
+                        const songDiv = document.createElement('div');
+                        songDiv.className = 'song';
+
+                        const artistElement = document.createElement('span');
+                        artistElement.innerText = song.artist;
+                        artistElement.className = 'artist';
+
+                        const titleElement = document.createElement('span');
+                        titleElement.innerText = song.title;
+                        titleElement.className = 'title';
+
+                        const button = document.createElement('button');
+                        button.innerText = 'Play on Spotify';
+                        button.className = 'spotify-button';
+                        button.onclick = function() {
+                            window.open(song.url, '_blank');
+                        };
+
+                        songDiv.appendChild(artistElement);
+                        songDiv.appendChild(titleElement);
+                        songDiv.appendChild(button);
+
+                        songsDiv.appendChild(songDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching songs:', error));
         }
 
-        // fetch emotion i update
         function fetchEmotion() {
             fetch('/emotion')
                 .then(response => response.json())
                 .then(data => {
-                    updateEmotion(data.emotion);
+                    const emotion = data.emotion;
+                    if (validEmotions.includes(emotion)) {
+                        updateEmotion(emotion);
+                    }
                 })
                 .catch(error => console.error('Error fetching emotion:', error));
         }
 
-        // update na emocijama svake 2 sekunde
         setInterval(fetchEmotion, 2000);
     </script>
 </body>

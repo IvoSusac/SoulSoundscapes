@@ -12,7 +12,6 @@ app = Flask(__name__)
 # Load face cascade classifier
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Global variable to store the detected emotion
 detected_emotion = 'neutral'
 
 def generate_frames():
@@ -92,7 +91,6 @@ def index():
     if not token_info:
         return redirect(url_for('login'))
     sp = spotipy.Spotify(auth=token_info['access_token'])
-    # Now you can use the Spotify API to get user information or recommendations
     return render_template('index.html')
 
 
@@ -104,6 +102,40 @@ def video_feed():
 def emotion():
     global detected_emotion
     return jsonify(emotion=detected_emotion)
+
+
+@app.route('/songs/<emotion>')
+def get_songs(emotion):
+    token_info = get_token()
+    if not token_info:
+        return redirect(url_for('login'))
+
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+
+    # Mapiramo emocije na spotify playliste
+    playlists = {
+        'happy': '1llkez7kiZtBeOw5UjFlJq',  
+        'sad': '37i9dQZF1DX7qK8ma5wgG1',     
+        'neutral': '37i9dQZF1DXcBWIGoYBM5M',
+        'angry': '37i9dQZF1DZ06evNZYGncI'
+    }
+
+    playlist_id = playlists.get(emotion)
+    if not playlist_id:
+        return jsonify({'error': 'Invalid emotion'}), 400
+
+    results = sp.playlist_tracks(playlist_id)
+    songs = []
+    for item in results['items']:
+        track = item['track']
+        song = {
+            'title': track['name'],
+            'artist': track['artists'][0]['name'],
+            'url': track['external_urls']['spotify']
+        }
+        songs.append(song)
+
+    return jsonify(songs)
 
 if __name__ == '__main__':
     app.run(debug=True)
