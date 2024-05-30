@@ -1,20 +1,32 @@
-<!doctype html>
-<html>
-    <head>
-        <title>Login</title>
-        <script>
-            function openSpotifyLogin() {
-                var width = 600;
-                var height = 600;
-                var left = (screen.width - width) / 2;
-                var top = (screen.height - height) / 2;
-                var params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=${width},height=${height},top=${top},left=${left}`;
-                window.open("{{ url_for('authorize') }}", "Spotify Login", params);
-            }
-        </script>
-    </head>
-    <body>
-        <h1>SoulSoundscapes</h1>
-        <button onclick="openSpotifyLogin()">Login with Spotify</button>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSoundscapes - Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h1 class="mb-4">SoulSoundscapes</h1>
+        <p>Please log in with your Spotify account to continue</p>
+        <a href="{{ url_for('authorize') }}" class="btn btn-primary btn-success">Log in with Spotify</a>
+    </div>
+</body>
 </html>
